@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rook Knight's Key Reader</title>
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #080808;
+    color: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.4;
+  }
+  .js-alert {
+    background-color: #7f1d1d;
+    color: #ffffff;
+    border-bottom: 2px solid #ef4444;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .header {
+    background-color: #111111;
+    border-bottom: 2px solid #dc2626;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-title {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    text-transform: uppercase;
+  }
+  .header-title span {
+    color: #ef4444;
+  }
+  .cal-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #1f1f1f;
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+  }
+  .tabs {
+    display: flex;
+    background-color: #121212;
+    border-bottom: 1px solid #262626;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 13px 8px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #a3a3a3;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .tab-btn.active {
+    color: #ffffff;
+    border-bottom-color: #ef4444;
+    background-color: #1a0808;
+  }
+  .container {
+    padding: 14px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .panel {
+    display: none;
+  }
+  .panel.active {
+    display: block;
+  }
+  .card {
+    background-color: #121212;
+    border: 1px solid #292929;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ef4444;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+  }
+  select, input[type="text"] {
+    width: 100%;
+    padding: 11px 12px;
+    background-color: #050505;
+    color: #ffffff;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  select:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #ef4444;
+  }
+  .row-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pin-group {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .pin-btn {
+    flex: 1;
+    padding: 10px 0;
+    background-color: #1a1a1a;
+    color: #d4d4d4;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .pin-btn.active {
+    background-color: #dc2626;
+    color: #ffffff;
+    border-color: #ef4444;
+  }
+  .action-btn {
+    padding: 10px 14px;
+    background-color: #1f1f1f;
+    color: #ffffff;
+    border: 1px solid #525252;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .action-btn.primary {
+    background-color: #dc2626;
+    border-color: #ef4444;
+  }
+  .action-btn.reset {
+    background-color: #290d0d;
+    border-color: #dc2626;
+    color: #fca5a5;
+  }
+  .shield-bar {
+    font-size: 11px;
+    color: #a3a3a3;
+    background-color: #0d0d0d;
+    border: 1px solid #262626;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .shield-bar strong {
+    color: #ef4444;
+  }
+  .pad-box {
+    background-color: #030303;
+    border: 2px solid #dc2626;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  #keySvg {
+    width: 100%;
+    height: 175px;
+    display: block;
+    background-color: #030303;
+  }
+  .bitting-display {
+    margin-top: 10px;
+    padding: 12px;
+    background-color: #0a0a0a;
+    border: 1px solid #262626;
+    border-radius: 6px;
+    text-align: center;
+  }
+  .bitting-code {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: #ef4444;
+    font-family: monospace;
+  }
+  .macs-warn {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #2b0909;
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 5px;
+    display: none;
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #222222;
+  }
+  .slider-row:last-child {
+    border-bottom: none;
+  }
+  .pin-tag {
+    width: 54px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e5e5e5;
+  }
+  .pin-slider {
+    flex: 1;
+    accent-color: #ef4444;
+    height: 28px;
+  }
+  .pin-val {
+    width: 68px;
+    text-align: right;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ef4444;
+  }
+  .quarter-pad {
+    height: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    touch-action: none;
+  }
+  .quarter-circle {
+    border: 3px solid #ef4444;
+    background-color: rgba(239, 68, 68, 0.14);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .step-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .step-controls button {
+    flex: 1;
+    padding: 12px 6px;
+    background-color: #1c1c1c;
+    color: #ffffff;
+    border: 1px solid #525252;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .log-item {
+    background-color: #0a0a0a;
+    border: 1px solid #2e2e2e;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .log-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffffff;
+  }
+  .log-sub {
+    font-size: 12px;
+    color: #a3a3a3;
+  }
+  .log-code {
+    font-family: monospace;
+    font-size: 18px;
+    font-weight: 800;
+    color: #ef4444;
+  }
+  .spec-note {
+    font-size: 12px;
+    color: #a3a3a3;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="js-alert" id="jsBlockedBanner">
+  ANDROID VIEWER DETECTED: Scripts are blocked here. Open Chrome and go to file:///sdcard/Download/rook-knights-key-reader-v6.html
+</div>
+
+<div class="header">
+  <div class="header-title">Rook Knight's <span>Key Reader</span></div>
+  <div class="cal-badge" id="calBadge">Scale: 6.20 px/mm</div>
+</div>
+
+<div class="tabs">
+  <button type="button" class="tab-btn active" id="tabDecode" onclick="switchTab('decode')">1. Decode Key</button>
+  <button type="button" class="tab-btn" id="tabCal" onclick="switchTab('cal')">2. Quarter Scale</button>
+  <button type="button" class="tab-btn" id="tabLog" onclick="switchTab('log')">3. Saved Log</button>
+</div>
+
+<div class="container">
+
+  <!-- DECODE TAB -->
+  <div id="panelDecode" class="panel active">
+    <div class="card">
+      <label class="label" for="brandSelect">Select Key Brand / System</label>
+      <select id="brandSelect" onchange="onBrandChange()"></select>
+      <div class="spec-note" id="specSummary"></div>
+
+      <div style="margin-top: 12px;">
+        <span class="label">Pin Count</span>
+        <div class="pin-group" id="pinCountGroup">
+          <button type="button" class="pin-btn" id="btnPin4" onclick="setPinCount(4)">4-Pin</button>
+          <button type="button" class="pin-btn active" id="btnPin5" onclick="setPinCount(5)">5-Pin</button>
+          <button type="button" class="pin-btn" id="btnPin6" onclick="setPinCount(6)">6-Pin</button>
+          <button type="button" class="pin-btn" id="btnPin7" onclick="setPinCount(7)">7-Pin</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shield-bar">
+      <span><strong>TOUCH-SHIELD:</strong> Active on Pad</span>
+      <span>Pop-ups blocked: <strong id="blockedCount">0</strong></span>
+    </div>
+
+    <div class="card">
+      <div class="row-between" style="margin-bottom: 10px;">
+        <button type="button" class="action-btn" onclick="flipKey()">Flip Key Side</button>
+        <button type="button" class="action-btn reset" onclick="resetCuts()">Reset Cuts</button>
+      </div>
+
+      <div class="pad-box" id="keyPadBox">
+        <svg id="keySvg" viewBox="0 0 360 175" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div class="bitting-display">
+        <div style="font-size: 11px; color: #a3a3a3; text-transform: uppercase;">Decoded Bitting (Shoulder to Tip)</div>
+        <div class="bitting-code" id="bittingOutput">11111</div>
+        <div class="macs-warn" id="macsWarning"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row-between" style="margin-bottom: 6px;">
+        <span class="label" style="margin: 0;">Adjust Individual Pin Cuts</span>
+        <button type="button" class="action-btn reset" style="padding: 6px 10px; font-size: 12px;" onclick="resetCuts()">Fresh Start</button>
+      </div>
+      <div id="slidersContainer"></div>
+    </div>
+
+    <div class="card">
+      <label class="label" for="keyLabelInput">Save Decoded Key to Log</label>
+      <div class="row-between">
+        <input type="text" id="keyLabelInput" placeholder="Label (e.g. Front Door, Padlock #1)" style="flex: 1;">
+        <button type="button" class="action-btn primary" onclick="saveCurrentKey()">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALIBRATION TAB -->
+  <div id="panelCal" class="panel">
+    <div class="card">
+      <div class="label">U.S. Quarter Calibration (24.26 mm)</div>
+      <p style="font-size: 13px; color: #d4d4d4; margin: 0 0 10px 0;">
+        Place a real U.S. Quarter flat on the black pad below. Pinch with two fingers or use the buttons until the red ring matches the outer edge of the coin.
+      </p>
+
+      <div class="pad-box quarter-pad" id="quarterPad">
+        <div class="quarter-circle" id="quarterCircle">24.26 mm<br>QUARTER</div>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <input type="range" id="quarterSlider" class="pin-slider" style="width: 100%;" min="35" max="320" step="0.5" value="150" oninput="setCircleDiameter(this.value)">
+      </div>
+
+      <div class="step-controls">
+        <button type="button" onclick="adjustCircle(-5)">-5 px</button>
+        <button type="button" onclick="adjustCircle(-0.5)">-0.5 px</button>
+        <button type="button" onclick="adjustCircle(0.5)">+0.5 px</button>
+        <button type="button" onclick="adjustCircle(5)">+5 px</button>
+      </div>
+
+      <div class="row-between" style="margin-top: 12px; font-size: 13px;">
+        <span>Circle Diameter: <strong id="diamReadout" style="color: #ef4444;">150.0 px</strong></span>
+        <span>Scale: <strong id="ppmReadout" style="color: #ef4444;">6.18 px/mm</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVED LOG TAB -->
+  <div id="panelLog" class="panel">
+    <div class="card">
+      <div class="row-between" style="margin-bottom: 10px;">
+        <span class="label" style="margin: 0;">Saved Key Bitting History</span>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="action-btn primary" onclick="exportCSV()">Export CSV</button>
+          <button type="button" class="action-btn reset" onclick="clearLog()">Clear</button>
+        </div>
+      </div>
+      <div id="logListContainer"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var KEY_SYSTEMS = [
+  {
+    id: "kwikset",
+    name: "Kwikset (KW1 / KW10 / Titan)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 6.27,
+    spacing: 3.81,
+    macs: 4,
+    codes: ["1", "2", "3", "4", "5", "6", "7"],
+    depths: [8.36, 7.77, 7.19, 6.60, 6.02, 5.44, 4.85]
+  },
+  {
+    id: "schlage",
+    name: "Schlage (SC1 / SC4 / C-L)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 5.87,
+    spacing: 3.96,
+    macs: 7,
+    codes: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    depths: [8.51, 8.13, 7.75, 7.37, 6.99, 6.60, 6.22, 5.84, 5.46, 5.08]
+  },
+  {
+    id: "best_a2",
+    name: "Best / SFIC (A2 System)",
+    pins: [6, 7],
+    defaultPins: 7,
+    shoulderToFirst: 4.57,
+    spacing: 3.56,
+    macs: 9,
+    codes: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    depths: [8.08, 7.76, 7.44, 7.12, 6.81, 6.49, 6.17, 5.85, 5.54, 5.22]
+  },
+  {
+    id: "best_a4",
+    name: "Best / SFIC (A4 System)",
+    pins: [6, 7],
+    defaultPins: 7,
+    shoulderToFirst: 4.57,
+    spacing: 3.56,
+    macs: 5,
+    codes: ["0", "1", "2", "3", "4", "5"],
+    depths: [8.08, 7.54, 7.01, 6.48, 5.94, 5.41]
+  },
+  {
+    id: "weiser",
+    name: "Weiser / Falcon (WR3 / WR5)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 6.02,
+    spacing: 3.96,
+    macs: 5,
+    codes: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    depths: [8.33, 7.87, 7.42, 6.96, 6.50, 6.05, 5.59, 5.13, 4.67, 4.22]
+  },
+  {
+    id: "yale",
+    name: "Yale Standard (.019 in Y1 / Y2)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 5.08,
+    spacing: 4.19,
+    macs: 7,
+    codes: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    depths: [8.13, 7.65, 7.16, 6.68, 6.20, 5.72, 5.23, 4.75, 4.27, 3.78]
+  },
+  {
+    id: "sargent",
+    name: "Sargent (LA / Sectional)",
+    pins: [5, 6],
+    defaultPins: 6,
+    shoulderToFirst: 5.49,
+    spacing: 3.96,
+    macs: 7,
+    codes: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+    depths: [8.33, 7.82, 7.32, 6.81, 6.30, 5.79, 5.28, 4.78, 4.27, 3.76]
+  },
+  {
+    id: "corbin",
+    name: "Corbin Russwin (System 70)",
+    pins: [5, 6],
+    defaultPins: 6,
+    shoulderToFirst: 6.35,
+    spacing: 3.96,
+    macs: 5,
+    codes: ["1", "2", "3", "4", "5", "6"],
+    depths: [8.59, 7.87, 7.16, 6.45, 5.74, 5.03]
+  },
+  {
+    id: "arrow",
+    name: "Arrow (AR1 / AR4)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 6.73,
+    spacing: 3.94,
+    macs: 7,
+    codes: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    depths: [8.00, 7.65, 7.29, 6.93, 6.58, 6.22, 5.87, 5.51, 5.16, 4.80]
+  },
+  {
+    id: "weslock",
+    name: "Weslock (WK2)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 6.10,
+    spacing: 3.96,
+    macs: 5,
+    codes: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    depths: [8.00, 7.54, 7.09, 6.63, 6.17, 5.72, 5.26, 4.80, 4.34]
+  },
+  {
+    id: "american",
+    name: "American Lock (AM3 / AM7 / A1100)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 3.96,
+    spacing: 3.18,
+    macs: 5,
+    codes: ["1", "2", "3", "4", "5", "6", "7", "8"],
+    depths: [7.24, 6.83, 6.43, 6.02, 5.61, 5.21, 4.80, 4.39]
+  },
+  {
+    id: "master_std",
+    name: "Master Lock Standard (M1 / 1K / 3K)",
+    pins: [4, 5],
+    defaultPins: 4,
+    shoulderToFirst: 4.06,
+    spacing: 3.18,
+    macs: 4,
+    codes: ["1", "2", "3", "4", "5", "6", "7"],
+    depths: [7.24, 6.83, 6.43, 6.02, 5.61, 5.21, 4.80]
+  },
+  {
+    id: "master_pro",
+    name: "Master Lock Pro Series (6000K / 7000K)",
+    pins: [5, 6],
+    defaultPins: 5,
+    shoulderToFirst: 3.96,
+    spacing: 3.18,
+    macs: 5,
+    codes: ["1", "2", "3", "4", "5", "6", "7", "8"],
+    depths: [7.24, 6.83, 6.43, 6.02, 5.61, 5.21, 4.80, 4.39]
+  }
+];
+
+var QUARTER_MM = 24.26;
+var currentSystem = KEY_SYSTEMS[0];
+var currentPinCount = 5;
+var currentCuts = [0, 0, 0, 0, 0];
+var isFlipped = false;
+var circleDiamPx = 150;
+var blockedPopups = 0;
+var savedLogs = [];
+
+function safeGetStorage(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (e) {
+    return null;
+  }
+}
+
+function safeSetStorage(key, val) {
+  try {
+    window.localStorage.setItem(key, val);
+  } catch (e) {}
+}
+
+function initApp() {
+  var banner = document.getElementById("jsBlockedBanner");
+  if (banner) {
+    banner.style.display = "none";
+  }
+
+  var savedDiam = safeGetStorage("rk_quarter_diam");
+  if (savedDiam && !isNaN(parseFloat(savedDiam))) {
+    circleDiamPx = parseFloat(savedDiam);
+  }
+
+  var rawLogs = safeGetStorage("rk_key_logs");
+  if (rawLogs) {
+    try {
+      var parsed = JSON.parse(rawLogs);
+      if (Array.isArray(parsed)) {
+        savedLogs = parsed;
+      }
+    } catch (e) {}
+  }
+
+  var sel = document.getElementById("brandSelect");
+  sel.innerHTML = "";
+  for (var i = 0; i < KEY_SYSTEMS.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = KEY_SYSTEMS[i].id;
+    opt.textContent = KEY_SYSTEMS[i].name;
+    sel.appendChild(opt);
+  }
+
+  setupTouchShield();
+  setupPinchCalibration();
+  updateCircleUI();
+  applySystem(KEY_SYSTEMS[0]);
+  renderLogList();
+}
+
+function switchTab(tabName) {
+  document.getElementById("tabDecode").className = "tab-btn" + (tabName === "decode" ? " active" : "");
+  document.getElementById("tabCal").className = "tab-btn" + (tabName === "cal" ? " active" : "");
+  document.getElementById("tabLog").className = "tab-btn" + (tabName === "log" ? " active" : "");
+
+  document.getElementById("panelDecode").className = "panel" + (tabName === "decode" ? " active" : "");
+  document.getElementById("panelCal").className = "panel" + (tabName === "cal" ? " active" : "");
+  document.getElementById("panelLog").className = "panel" + (tabName === "log" ? " active" : "");
+
+  if (tabName === "decode") {
+    renderKeySVG();
+  }
+}
+
+function onBrandChange() {
+  var id = document.getElementById("brandSelect").value;
+  for (var i = 0; i < KEY_SYSTEMS.length; i++) {
+    if (KEY_SYSTEMS[i].id === id) {
+      applySystem(KEY_SYSTEMS[i]);
+      break;
+    }
+  }
+}
+
+function applySystem(sys) {
+  currentSystem = sys;
+  currentPinCount = sys.defaultPins;
+  currentCuts = [];
+  for (var i = 0; i < currentPinCount; i++) {
+    currentCuts.push(0);
+  }
+  updatePinButtons();
+  updateSpecSummary();
+  buildSliders();
+  renderKeySVG();
+  updateBittingReadout();
+}
+
+function setPinCount(count) {
+  currentPinCount = count;
+  var nextCuts = [];
+  for (var i = 0; i < count; i++) {
+    nextCuts.push(i < currentCuts.length ? currentCuts[i] : 0);
+  }
+  currentCuts = nextCuts;
+  updatePinButtons();
+  updateSpecSummary();
+  buildSliders();
+  renderKeySVG();
+  updateBittingReadout();
+}
+
+function updatePinButtons() {
+  var counts = [4, 5, 6, 7];
+  for (var i = 0; i < counts.length; i++) {
+    var c = counts[i];
+    var btn = document.getElementById("btnPin" + c);
+    if (btn) {
+      btn.className = "pin-btn" + (c === currentPinCount ? " active" : "");
+    }
+  }
+}
+
+function updateSpecSummary() {
+  var el = document.getElementById("specSummary");
+  el.textContent = "Shoulder-to-1st: " + currentSystem.shoulderToFirst.toFixed(2) + " mm | Spacing: " + currentSystem.spacing.toFixed(2) + " mm | MACS: " + currentSystem.macs;
+}
+
+function resetCuts() {
+  for (var i = 0; i < currentPinCount; i++) {
+    currentCuts[i] = 0;
+  }
+  buildSliders();
+  renderKeySVG();
+  updateBittingReadout();
+}
+
+function flipKey() {
+  isFlipped = !isFlipped;
+  renderKeySVG();
+}
+
+function buildSliders() {
+  var container = document.getElementById("slidersContainer");
+  container.innerHTML = "";
+  var maxIdx = currentSystem.codes.length - 1;
+
+  for (var i = 0; i < currentPinCount; i++) {
+    var row = document.createElement("div");
+    row.className = "slider-row";
+
+    var tag = document.createElement("div");
+    tag.className = "pin-tag";
+    tag.textContent = "Pin " + (i + 1);
+
+    var slider = document.createElement("input");
+    slider.type = "range";
+    slider.className = "pin-slider";
+    slider.min = "0";
+    slider.max = String(maxIdx);
+    slider.step = "1";
+    slider.value = String(currentCuts[i]);
+    slider.setAttribute("data-pin", String(i));
+    slider.oninput = function() {
+      var pinIdx = parseInt(this.getAttribute("data-pin"), 10);
+      var valIdx = parseInt(this.value, 10);
+      currentCuts[pinIdx] = valIdx;
+      var valLabel = document.getElementById("pinVal_" + pinIdx);
+      if (valLabel) {
+        valLabel.textContent = currentSystem.codes[valIdx] + " (" + currentSystem.depths[valIdx].toFixed(2) + ")";
+      }
+      renderKeySVG();
+      updateBittingReadout();
+    };
+
+    var valBox = document.createElement("div");
+    valBox.className = "pin-val";
+    valBox.id = "pinVal_" + i;
+    valBox.textContent = currentSystem.codes[currentCuts[i]] + " (" + currentSystem.depths[currentCuts[i]].toFixed(2) + ")";
+
+    row.appendChild(tag);
+    row.appendChild(slider);
+    row.appendChild(valBox);
+    container.appendChild(row);
+  }
+}
+
+function updateBittingReadout() {
+  var codeStr = "";
+  var macsViolations = [];
+
+  for (var i = 0; i < currentPinCount; i++) {
+    var cIdx = currentCuts[i];
+    codeStr += currentSystem.codes[cIdx];
+    if (i > 0) {
+      var diff = Math.abs(cIdx - currentCuts[i - 1]);
+      if (diff > currentSystem.macs) {
+        macsViolations.push("Pin " + i + "-" + (i + 1) + " jump (" + diff + ") exceeds MACS " + currentSystem.macs);
+      }
+    }
+  }
+
+  document.getElementById("bittingOutput").textContent = codeStr;
+
+  var warnEl = document.getElementById("macsWarning");
+  if (macsViolations.length > 0) {
+    warnEl.style.display = "block";
+    warnEl.textContent = "MACS Warning: " + macsViolations.join("; ");
+  } else {
+    warnEl.style.display = "none";
+  }
+}
+
+function getPxPerMm() {
+  return circleDiamPx / QUARTER_MM;
+}
+
+function renderKeySVG() {
+  var svg = document.getElementById("keySvg");
+  var ppm = getPxPerMm();
+  var svgW = 360;
+  var svgH = 175;
+  var spineY = 142;
+
+  var totalBladeMm = currentSystem.shoulderToFirst + (currentPinCount - 1) * currentSystem.spacing + 4.8;
+  var bladePx = totalBladeMm * ppm;
+  var shoulderX = isFlipped ? (svgW - 44) : 44;
+  var dir = isFlipped ? -1 : 1;
+
+  var maxBladeHeightMm = currentSystem.depths[0] + 0.6;
+  var topBladeY = spineY - maxBladeHeightMm * ppm;
+
+  var pts = [];
+  var bowX = shoulderX - dir * 26;
+  pts.push(bowX + "," + (spineY + 12));
+  pts.push(bowX + "," + (topBladeY - 12));
+  pts.push(shoulderX + "," + (topBladeY - 12));
+  pts.push(shoulderX + "," + topBladeY);
+
+  var flatHalfW = 1.15 * ppm;
+
+  for (var i = 0; i < currentPinCount; i++) {
+    var centerMm = currentSystem.shoulderToFirst + i * currentSystem.spacing;
+    var centerX = shoulderX + dir * (centerMm * ppm);
+    var rootMm = currentSystem.depths[currentCuts[i]];
+    var cutY = spineY - rootMm * ppm;
+
+    var leftSlopeX = centerX - dir * (flatHalfW + 1.1 * ppm);
+    var leftFlatX = centerX - dir * flatHalfW;
+    var rightFlatX = centerX + dir * flatHalfW;
+    var rightSlopeX = centerX + dir * (flatHalfW + 1.1 * ppm);
+
+    pts.push(leftSlopeX.toFixed(1) + "," + topBladeY.toFixed(1));
+    pts.push(leftFlatX.toFixed(1) + "," + cutY.toFixed(1));
+    pts.push(rightFlatX.toFixed(1) + "," + cutY.toFixed(1));
+    pts.push(rightSlopeX.toFixed(1) + "," + topBladeY.toFixed(1));
+  }
+
+  var tipX = shoulderX + dir * bladePx;
+  var tipBevelX = tipX + dir * (2.2 * ppm);
+  pts.push(tipX.toFixed(1) + "," + topBladeY.toFixed(1));
+  pts.push(tipBevelX.toFixed(1) + "," + (topBladeY + 2.5 * ppm).toFixed(1));
+  pts.push(tipBevelX.toFixed(1) + "," + (spineY - 1.5 * ppm).toFixed(1));
+  pts.push(tipX.toFixed(1) + "," + spineY.toFixed(1));
+  pts.push(shoulderX + "," + spineY.toFixed(1));
+  pts.push(shoulderX + "," + (spineY + 12));
+
+  var html = "";
+  html += '<line x1="10" y1="' + spineY + '" x2="' + (svgW - 10) + '" y2="' + spineY + '" stroke="#525252" stroke-width="1" stroke-dasharray="4,4"/>';
+  html += '<line x1="' + shoulderX + '" y1="12" x2="' + shoulderX + '" y2="' + (svgH - 8) + '" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>';
+  html += '<polygon points="' + pts.join(" ") + '" fill="rgba(220,38,38,0.28)" stroke="#ef4444" stroke-width="2.2" stroke-linejoin="round"/>';
+
+  for (var j = 0; j < currentPinCount; j++) {
+    var pMm = currentSystem.shoulderToFirst + j * currentSystem.spacing;
+    var pX = shoulderX + dir * (pMm * ppm);
+    var rMm = currentSystem.depths[currentCuts[j]];
+    var cY = spineY - rMm * ppm;
+    html += '<circle cx="' + pX.toFixed(1) + '" cy="' + cY.toFixed(1) + '" r="2.6" fill="#ffffff"/>';
+    html += '<text x="' + pX.toFixed(1) + '" y="' + (spineY + 15) + '" fill="#fca5a5" font-size="11" font-weight="bold" text-anchor="middle">' + currentSystem.codes[currentCuts[j]] + '</text>';
+  }
+
+  html += '<text x="' + shoulderX + '" y="11" fill="#ef4444" font-size="10" font-weight="bold" text-anchor="middle">SHOULDER</text>';
+  html += '<text x="' + (isFlipped ? 16 : svgW - 16) + '" y="' + (spineY - 5) + '" fill="#a3a3a3" font-size="10" text-anchor="' + (isFlipped ? "start" : "end") + '">SPINE</text>';
+
+  svg.innerHTML = html;
+}
+
+function setCircleDiameter(val) {
+  var d = parseFloat(val);
+  if (isNaN(d)) return;
+  if (d < 35) d = 35;
+  if (d > 320) d = 320;
+  circleDiamPx = d;
+  safeSetStorage("rk_quarter_diam", String(circleDiamPx));
+  updateCircleUI();
+  renderKeySVG();
+}
+
+function adjustCircle(delta) {
+  setCircleDiameter(circleDiamPx + delta);
+}
+
+function updateCircleUI() {
+  var circle = document.getElementById("quarterCircle");
+  circle.style.width = circleDiamPx + "px";
+  circle.style.height = circleDiamPx + "px";
+
+  document.getElementById("quarterSlider").value = String(circleDiamPx);
+  document.getElementById("diamReadout").textContent = circleDiamPx.toFixed(1) + " px";
+
+  var ppm = getPxPerMm();
+  document.getElementById("ppmReadout").textContent = ppm.toFixed(2) + " px/mm";
+  document.getElementById("calBadge").textContent = "Scale: " + ppm.toFixed(2) + " px/mm";
+}
+
+function setupPinchCalibration() {
+  var pad = document.getElementById("quarterPad");
+  var startDist = 0;
+  var startDiam = circleDiamPx;
+
+  pad.addEventListener("touchstart", function(e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      startDist = Math.sqrt(dx * dx + dy * dy);
+      startDiam = circleDiamPx;
+    }
+  }, { passive: false });
+
+  pad.addEventListener("touchmove", function(e) {
+    if (e.touches.length === 2 && startDist > 0) {
+      e.preventDefault();
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var scale = dist / startDist;
+      setCircleDiameter(startDiam * scale);
+    }
+  }, { passive: false });
+}
+
+function setupTouchShield() {
+  var pads = [document.getElementById("keyPadBox"), document.getElementById("quarterPad")];
+  for (var i = 0; i < pads.length; i++) {
+    if (!pads[i]) continue;
+    pads[i].addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+      blockedPopups++;
+      document.getElementById("blockedCount").textContent = String(blockedPopups);
+      return false;
+    });
+    pads[i].addEventListener("selectstart", function(e) {
+      e.preventDefault();
+      return false;
+    });
+  }
+}
+
+function saveCurrentKey() {
+  var labelInput = document.getElementById("keyLabelInput");
+  var label = labelInput.value.trim();
+  if (!label) {
+    label = currentSystem.name.split(" ")[0] + " Key #" + (savedLogs.length + 1);
+  }
+
+  var bitting = document.getElementById("bittingOutput").textContent;
+  var entry = {
+    id: Date.now(),
+    label: label,
+    systemId: currentSystem.id,
+    systemName: currentSystem.name,
+    pinCount: currentPinCount,
+    cuts: currentCuts.slice(),
+    bitting: bitting,
+    date: new Date().toLocaleDateString()
+  };
+
+  savedLogs.unshift(entry);
+  safeSetStorage("rk_key_logs", JSON.stringify(savedLogs));
+  labelInput.value = "";
+  renderLogList();
+  switchTab("log");
+}
+
+function renderLogList() {
+  var container = document.getElementById("logListContainer");
+  if (savedLogs.length === 0) {
+    container.innerHTML = '<div style="color: #a3a3a3; font-size: 13px; padding: 12px 0;">No keys saved yet. Decode a key and tap Save Key to store it here.</div>';
+    return;
+  }
+
+  var html = "";
+  for (var i = 0; i < savedLogs.length; i++) {
+    var item = savedLogs[i];
+    html += '<div class="log-item">';
+    html += '<div>';
+    html += '<div class="log-title">' + escapeHtml(item.label) + '</div>';
+    html += '<div class="log-sub">' + escapeHtml(item.systemName) + ' (' + item.pinCount + '-Pin) • ' + escapeHtml(item.date) + '</div>';
+    html += '<div class="log-code">' + escapeHtml(item.bitting) + '</div>';
+    html += '</div>';
+    html += '<div style="display: flex; flex-direction: column; gap: 6px;">';
+    html += '<button type="button" class="action-btn primary" style="padding: 6px 10px; font-size: 12px;" onclick="loadSavedEntry(' + i + ')">Load</button>';
+    html += '<button type="button" class="action-btn reset" style="padding: 6px 10px; font-size: 12px;" onclick="deleteSavedEntry(' + i + ')">Delete</button>';
+    html += '</div>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function loadSavedEntry(idx) {
+  var item = savedLogs[idx];
+  if (!item) return;
+
+  for (var i = 0; i < KEY_SYSTEMS.length; i++) {
+    if (KEY_SYSTEMS[i].id === item.systemId) {
+      currentSystem = KEY_SYSTEMS[i];
+      document.getElementById("brandSelect").value = currentSystem.id;
+      break;
+    }
+  }
+
+  currentPinCount = item.pinCount;
+  currentCuts = item.cuts.slice();
+  updatePinButtons();
+  updateSpecSummary();
+  buildSliders();
+  renderKeySVG();
+  updateBittingReadout();
+  switchTab("decode");
+}
+
+function deleteSavedEntry(idx) {
+  savedLogs.splice(idx, 1);
+  safeSetStorage("rk_key_logs", JSON.stringify(savedLogs));
+  renderLogList();
+}
+
+function clearLog() {
+  savedLogs = [];
+  safeSetStorage("rk_key_logs", JSON.stringify(savedLogs));
+  renderLogList();
+}
+
+function exportCSV() {
+  if (savedLogs.length === 0) return;
+  var rows = ["Label,Brand System,Pin Count,Bitting Code,Date"];
+  for (var i = 0; i < savedLogs.length; i++) {
+    var item = savedLogs[i];
+    rows.push('"' + item.label.replace(/"/g, '""') + '","' + item.systemName.replace(/"/g, '""') + '",' + item.pinCount + ',"' + item.bitting + '","' + item.date + '"');
+  }
+  var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "rook-knights-key-log.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
+</script>
+</body>
+</html>
