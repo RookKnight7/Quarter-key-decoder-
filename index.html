@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Rook Knight's Key Reader v10 — based on v9, with: pin-count buttons limited to each system's valid counts; cut width clamped so adjacent cuts can't overlap; confirm before clearing the log; pinch state reset on touch end; saved-entry validation on load; off-screen key warning; stored calibration values clamped on load; generic Android-viewer banner text. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -143,6 +144,10 @@
     background-color: #dc2626;
     color: #ffffff;
     border-color: #ef4444;
+  }
+  .pin-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
   }
   .action-btn {
     padding: 10px 14px;
@@ -327,12 +332,12 @@
 <body>
 
 <div class="js-alert" id="jsBlockedBanner">
-  ANDROID VIEWER DETECTED: Scripts are blocked here. Open Chrome and go to file:///sdcard/Download/rook-knights-key-reader-v9.html
+  ANDROID VIEWER DETECTED: Scripts are blocked here. Open this file in Chrome instead.
 </div>
 
 <div class="header">
   <div class="header-title">Rook Knight's <span>Key Reader</span></div>
-  <div class="cal-badge" id="calBadge">Scale: 6.20 px/mm</div>
+  <div class="cal-badge" id="calBadge">Scale: 6.18 px/mm</div>
 </div>
 
 <div class="tabs">
@@ -396,7 +401,7 @@
 
     <div class="card">
       <div class="row-between" style="margin-bottom: 6px;">
-        <span class="label" style="margin: 0;">Adjust Individual Pin Cuts</span>
+        <span class="label" style="margin: 0;">Adjust Individual Pin Cuts (depths in mm)</span>
         <button type="button" class="action-btn reset" style="padding: 6px 10px; font-size: 12px;" onclick="resetCuts()">Fresh Start</button>
       </div>
       <div id="slidersContainer"></div>
@@ -637,12 +642,12 @@ function initApp() {
 
   var savedDiam = safeGetStorage("rk_quarter_diam");
   if (savedDiam && !isNaN(parseFloat(savedDiam))) {
-    circleDiamPx = parseFloat(savedDiam);
+    circleDiamPx = Math.min(320, Math.max(35, parseFloat(savedDiam)));
   }
 
   var savedOffset = safeGetStorage("rk_shoulder_offset_v9");
   if (savedOffset && !isNaN(parseFloat(savedOffset))) {
-    shoulderOffset = parseFloat(savedOffset);
+    shoulderOffset = Math.min(240, Math.max(40, parseFloat(savedOffset)));
   }
 
   var rawLogs = safeGetStorage("rk_key_logs");
@@ -729,6 +734,7 @@ function applySystem(sys) {
 }
 
 function setPinCount(count) {
+  if (currentSystem.pins.indexOf(count) === -1) return;
   currentPinCount = count;
   var nextCuts = [];
   for (var i = 0; i < count; i++) {
@@ -749,6 +755,7 @@ function updatePinButtons() {
     var btn = document.getElementById("btnPin" + c);
     if (btn) {
       btn.className = "pin-btn" + (c === currentPinCount ? " active" : "");
+      btn.disabled = currentSystem.pins.indexOf(c) === -1;
     }
   }
 }
@@ -870,7 +877,12 @@ function renderKeySVG() {
   pts.push(shoulderX.toFixed(1) + "," + (topBladeY - 14));
   pts.push(shoulderX.toFixed(1) + "," + topBladeY.toFixed(1));
 
-  var flatHalfW = 1.15 * ppm;
+  // Keep each cut narrower than the pin spacing so adjacent cuts never
+  // overlap and fold the outline back on itself. Spacing is only 3.18 mm
+  // on American/Master systems, but the old cut was 4.50 mm wide at the top.
+  var halfCutMm = Math.min(2.25, currentSystem.spacing * 0.48);
+  var flatHalfW = halfCutMm * (1.15 / 2.25) * ppm;
+  var slopeHalfW = halfCutMm * (1.10 / 2.25) * ppm;
 
   for (var i = 0; i < currentPinCount; i++) {
     var centerMm = currentSystem.shoulderToFirst + i * currentSystem.spacing;
@@ -878,10 +890,10 @@ function renderKeySVG() {
     var rootMm = currentSystem.depths[currentCuts[i]];
     var cutY = spineY - rootMm * ppm;
 
-    var leftSlopeX = centerX - dir * (flatHalfW + 1.1 * ppm);
+    var leftSlopeX = centerX - dir * (flatHalfW + slopeHalfW);
     var leftFlatX = centerX - dir * flatHalfW;
     var rightFlatX = centerX + dir * flatHalfW;
-    var rightSlopeX = centerX + dir * (flatHalfW + 1.1 * ppm);
+    var rightSlopeX = centerX + dir * (flatHalfW + slopeHalfW);
 
     pts.push(leftSlopeX.toFixed(1) + "," + topBladeY.toFixed(1));
     pts.push(leftFlatX.toFixed(1) + "," + cutY.toFixed(1));
@@ -918,6 +930,12 @@ function renderKeySVG() {
 
   html += '<text x="' + shoulderX + '" y="11" fill="#ef4444" font-size="10" font-weight="bold" text-anchor="middle">SHOULDER</text>';
   html += '<text x="' + (isFlipped ? 14 : svgW - 14) + '" y="' + (spineY - 5) + '" fill="#a3a3a3" font-size="10" text-anchor="' + (isFlipped ? "start" : "end") + '">SPINE</text>';
+
+  // True scale is the point of the calibration tab, so never shrink the
+  // drawing to fit — warn instead when the key runs past the edge.
+  if (tipBevelX < 2 || tipBevelX > svgW - 2 || bowX < 2 || bowX > svgW - 2) {
+    html += '<text x="' + (svgW / 2) + '" y="171" fill="#fca5a5" font-size="10" font-weight="bold" text-anchor="middle">KEY RUNS PAST EDGE — ADJUST POSITION OR SCALE</text>';
+  }
 
   svg.innerHTML = html;
 }
@@ -975,6 +993,10 @@ function setupPinchCalibration() {
       setCircleDiameter(startDiam * scale);
     }
   }, { passive: false });
+
+  var resetPinch = function() { startDist = 0; };
+  pad.addEventListener("touchend", resetPinch);
+  pad.addEventListener("touchcancel", resetPinch);
 }
 
 function setupTouchShield() {
@@ -1049,16 +1071,27 @@ function loadSavedEntry(idx) {
   var item = savedLogs[idx];
   if (!item) return;
 
+  var foundSystem = null;
   for (var i = 0; i < KEY_SYSTEMS.length; i++) {
     if (KEY_SYSTEMS[i].id === item.systemId) {
-      currentSystem = KEY_SYSTEMS[i];
-      document.getElementById("brandSelect").value = currentSystem.id;
+      foundSystem = KEY_SYSTEMS[i];
       break;
     }
   }
+  if (!foundSystem) return;
+  currentSystem = foundSystem;
+  document.getElementById("brandSelect").value = currentSystem.id;
 
   currentPinCount = item.pinCount;
-  currentCuts = item.cuts.slice();
+  if (currentSystem.pins.indexOf(currentPinCount) === -1) {
+    currentPinCount = currentSystem.defaultPins;
+  }
+  var maxIdx = currentSystem.codes.length - 1;
+  currentCuts = [];
+  for (var j = 0; j < currentPinCount; j++) {
+    var c = (item.cuts && typeof item.cuts[j] === "number") ? Math.round(item.cuts[j]) : 0;
+    currentCuts.push(Math.min(maxIdx, Math.max(0, c)));
+  }
   updatePinButtons();
   updateSpecSummary();
   buildSliders();
@@ -1074,6 +1107,7 @@ function deleteSavedEntry(idx) {
 }
 
 function clearLog() {
+  if (savedLogs.length > 0 && !confirm("Delete all " + savedLogs.length + " saved keys? This can't be undone.")) return;
   savedLogs = [];
   safeSetStorage("rk_key_logs", JSON.stringify(savedLogs));
   renderLogList();
