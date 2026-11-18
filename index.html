@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Rook Knight's Key Reader v10 — based on v9, with: pin-count buttons limited to each system's valid counts; cut width clamped so adjacent cuts can't overlap; confirm before clearing the log; pinch state reset on touch end; saved-entry validation on load; off-screen key warning; stored calibration values clamped on load; generic Android-viewer banner text. -->
+<!-- Rook Knight's Key Reader v13 — based on v12, with: Key Head Room / Position slider moved below the key drawing so it sits with the key on small phone screens. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -187,6 +187,7 @@
     border: 1px solid #262626;
     border-radius: 6px;
     padding: 8px 10px;
+    margin-top: 10px;
     margin-bottom: 10px;
   }
   .pad-box {
@@ -199,10 +200,14 @@
     -webkit-user-select: none;
     -webkit-touch-callout: none;
   }
+  #keyPadBox {
+    overflow-x: auto;
+  }
   #keySvg {
-    width: 100%;
+    width: 380px;
     height: 175px;
     display: block;
+    margin: 0 auto;
     background-color: #030303;
   }
   .bitting-display {
@@ -269,7 +274,7 @@
     touch-action: none;
   }
   .quarter-circle {
-    border: 3px solid #ef4444;
+    border: 2px solid #ef4444;
     background-color: rgba(239, 68, 68, 0.14);
     border-radius: 50%;
     display: flex;
@@ -327,6 +332,27 @@
     color: #a3a3a3;
     margin-top: 6px;
   }
+  .sliders-section {
+    border-top: 1px solid #262626;
+    margin-top: 14px;
+    padding-top: 12px;
+  }
+  @media (max-width: 520px) {
+    /* Phone screens: pin the drawing and the bitting readout to the top
+       while the sliders scroll beneath, so the key stays visible while
+       adjusting cuts. The readout sticks at 189px = 199px pad height
+       (175 svg + 20 padding + 4 border) minus its own 10px top margin. */
+    #keyPadBox {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .bitting-display {
+      position: sticky;
+      top: 189px;
+      z-index: 20;
+    }
+  }
 </style>
 </head>
 <body>
@@ -377,6 +403,10 @@
         <button type="button" class="action-btn reset" onclick="resetCuts()">Reset Cuts</button>
       </div>
 
+      <div class="pad-box" id="keyPadBox">
+        <svg id="keySvg" viewBox="0 0 380 175" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
       <div class="pos-box">
         <div class="row-between" style="margin-bottom: 4px;">
           <span style="font-size: 11px; font-weight: 700; color: #ef4444; text-transform: uppercase;">Key Head Room / Position</span>
@@ -387,24 +417,21 @@
           <span id="shoulderVal" style="font-family: monospace; font-size: 12px; font-weight: 700; color: #fca5a5; width: 46px; text-align: right;">170</span>
         </div>
       </div>
-
-      <div class="pad-box" id="keyPadBox">
-        <svg id="keySvg" viewBox="0 0 380 175" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
+      <div class="spec-note">Lay the key flat on the screen: shoulder on the dashed SHOULDER line, spine on the dashed line. Check each cut looking straight down — at an angle the key's thickness shifts it against the dots.</div>
 
       <div class="bitting-display">
         <div style="font-size: 11px; color: #a3a3a3; text-transform: uppercase;">Decoded Bitting (Shoulder to Tip)</div>
         <div class="bitting-code" id="bittingOutput">11111</div>
         <div class="macs-warn" id="macsWarning"></div>
       </div>
-    </div>
 
-    <div class="card">
+      <div class="sliders-section">
       <div class="row-between" style="margin-bottom: 6px;">
         <span class="label" style="margin: 0;">Adjust Individual Pin Cuts (depths in mm)</span>
         <button type="button" class="action-btn reset" style="padding: 6px 10px; font-size: 12px;" onclick="resetCuts()">Fresh Start</button>
       </div>
       <div id="slidersContainer"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -421,7 +448,7 @@
     <div class="card">
       <div class="label">U.S. Quarter Calibration (24.26 mm)</div>
       <p style="font-size: 13px; color: #d4d4d4; margin: 0 0 10px 0;">
-        Place a real U.S. Quarter flat on the black pad below. Pinch with two fingers or use the buttons until the red ring matches the outer edge of the coin.
+        Place a real U.S. Quarter flat on the black pad below. Pinch with two fingers or use the buttons until the OUTER edge of the red ring lines up with the outer edge of the coin. Look straight down at the screen while matching — viewing at an angle shifts the coin against the ring.
       </p>
 
       <div class="pad-box quarter-pad" id="quarterPad">
